@@ -1,0 +1,36 @@
+# Variáveis de ambiente e segredos
+.env
+.env.*
+*.env
+*.pem
+*.key
+
+# Código-fonte proprietário e bancos locais
+frontend/
+backend/
+database.db
+*.db
+*.sqlite*
+scripts/
+tools/
+scratch/
+
+# Arquivos internos de agentes e orquestração
+.gemini/
+.agents/
+.superpowers/
+.reversa/
+_reversa_refactor/
+_reversa_docs/
+GEMINI.md
+CLAUDE.md
+AGENTS.md
+WORKFLOW.md
+render_mcp.md
+audit_*.json
+
+# Sistema e caches
+.DS_Store
+Thumbs.db
+__pycache__/
+node_modules/
