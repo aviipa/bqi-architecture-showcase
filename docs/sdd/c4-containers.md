@@ -1,26 +1,26 @@
 # Diagrama C4 Nível 2: Containers
 
 ```mermaid
-C4Container
-    title Diagrama de Containers - Banco de Questões Inteligente (BQI)
+flowchart LR
+    Aluno(["Estudante POLI/UPE<br/><sub>Desktop & Mobile</sub>"])
 
-    Person(aluno, "Estudante POLI/UPE", "Navegador Desktop ou Mobile")
+    subgraph BQI ["Plataforma bqi.ia.br"]
+        direction TB
+        SPA["<b>SPA Frontend</b><br/><sub>React 19 · TypeScript · Vite · KaTeX</sub>"]
+        Auth["<b>Identity & Domain Guard</b><br/><sub>Supabase Auth · Hook PL/pgSQL</sub>"]
+        API["<b>Backend API</b><br/><sub>Python 3.11 · FastAPI · Pydantic · SQLAlchemy</sub>"]
+        DB[("<b>PostgreSQL + pgvector</b><br/><sub>Logs · Embeddings 768d · RLS</sub>")]
 
-    System_Boundary(bqi, "Banco de Questões Inteligente (bqi.ia.br)") {
-        Container(spa, "Single Page Application", "React 19, TypeScript, Vite, Tailwind, KaTeX", "Interface editorial do aluno: Landing Page, Login Institucional, Simulados Cronometrados, Gabarito e Estatísticas")
-        Container(api, "Backend API", "Python 3.11, FastAPI, Pydantic v2, SQLAlchemy", "Orquestra RAG híbrido, protege gabarito (/verify), valida JWT e agrega métricas")
-        ContainerDb(db, "Database & Vector Store", "PostgreSQL + pgvector (Supabase)", "Logs imutáveis de questões, embeddings (768d), sessões de simulado e reportes")
-        Container(auth, "Identity & Domain Guard", "Supabase Auth + PL/pgSQL Hook", "Emissão de JWT, confirmação de e-mail e bloqueio institucional (@upe.br / @poli.br)")
-    }
+        SPA -->|Cadastro, Login & JWT| Auth
+        SPA -->|Geração, /verify & Métricas| API
+        Auth -.->|hook_restrict_signup_by_institutional_email| DB
+        API -->|SQLAlchemy + pgvector| DB
+    end
 
-    System_Ext(gemini, "Google Gemini API", "Inferência estruturada + Embeddings")
-    System_Ext(resend, "Resend", "Entrega transacional de e-mails")
+    Gemini["<b>Google Gemini API</b><br/><sub>Inferência Estruturada + Embeddings</sub>"]
+    Resend["<b>Resend SMTP</b><br/><sub>Confirmação e Recuperação</sub>"]
 
-    Rel(aluno, spa, "Interage", "HTTPS")
-    Rel(spa, auth, "Cadastro, Login e Refresh JWT", "supabase-js / HTTPS")
-    Rel(spa, api, "Geração, Verificação (/verify) e Dashboards", "JSON / HTTPS + Bearer JWT")
-    Rel(api, db, "Lê/escreve registros e consulta pgvector", "SQLAlchemy / PostgreSQL")
-    Rel(api, gemini, "Gera questões e vetores semânticos", "google-genai")
-    Rel(auth, db, "Executa hook_restrict_signup_by_institutional_email", "before-user-created")
-    Rel(auth, resend, "Envia link de confirmação e redefinição", "SMTP")
+    Aluno -->|HTTPS| SPA
+    API -->|google-genai| Gemini
+    Auth -->|SMTP / TLS| Resend
 ```

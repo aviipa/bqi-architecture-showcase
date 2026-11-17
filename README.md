@@ -71,31 +71,31 @@ Para impedir que barras invertidas `\f`, `\t` ou `\b` corrompam o payload JSON d
 
 ---
 
-## Visão Geral da Arquitetura (C4 Containers)
+## Visão Geral da Arquitetura
 
 ```mermaid
-C4Container
-    title Diagrama de Containers — Banco de Questões Inteligente (BQI)
+flowchart LR
+    Aluno(["Estudante POLI/UPE<br/><sub>Desktop & Mobile</sub>"])
 
-    Person(aluno, "Estudante POLI/UPE", "Desktop ou Mobile")
+    subgraph BQI ["Plataforma bqi.ia.br"]
+        direction TB
+        SPA["<b>SPA Frontend</b><br/><sub>React 19 · TypeScript · KaTeX</sub>"]
+        Auth["<b>Identity & Domain Guard</b><br/><sub>Supabase Auth · Hook PL/pgSQL</sub>"]
+        API["<b>Backend API</b><br/><sub>Python 3.11 · FastAPI · SQLAlchemy</sub>"]
+        DB[("<b>PostgreSQL + pgvector</b><br/><sub>Logs · Embeddings 768d · RLS</sub>")]
 
-    System_Boundary(bqi, "Banco de Questões Inteligente (bqi.ia.br)") {
-        Container(spa, "SPA Frontend", "React 19, TypeScript, Vite, Tailwind, KaTeX", "Simulados cronometrados, gabarito analítico e diagnóstico")
-        Container(api, "Backend API", "Python 3.11, FastAPI, SQLAlchemy", "Pipeline RAG, verificação de gabarito (/verify) e métricas Bloom")
-        ContainerDb(db, "Database & Vector Store", "PostgreSQL + pgvector (Supabase)", "Logs imutáveis, embeddings (768d) e sessões com RLS")
-        Container(auth, "Identity & Domain Guard", "Supabase Auth + PL/pgSQL Hook", "JWT, confirmação de e-mail e trava institucional (@upe.br / @poli.br)")
-    }
+        SPA -->|Autenticação| Auth
+        SPA -->|API REST + JWT| API
+        Auth -.->|before-user-created| DB
+        API -->|ORM + Vetores| DB
+    end
 
-    System_Ext(gemini, "Google Gemini API", "Geração JSON + Embeddings")
-    System_Ext(resend, "Resend SMTP", "E-mails transacionais verificados")
+    Gemini["<b>Google Gemini API</b><br/><sub>JSON + Embeddings</sub>"]
+    Resend["<b>Resend SMTP</b><br/><sub>E-mails @bqi.ia.br</sub>"]
 
-    Rel(aluno, spa, "Interage", "HTTPS")
-    Rel(spa, auth, "Autenticação", "supabase-js")
-    Rel(spa, api, "API REST", "JSON/HTTPS + JWT")
-    Rel(api, db, "ORM + pgvector", "PostgreSQL")
-    Rel(api, gemini, "Inferência", "google-genai")
-    Rel(auth, db, "Executa hook before-user-created", "PL/pgSQL")
-    Rel(auth, resend, "Confirmação e recuperação", "SMTP")
+    Aluno -->|HTTPS| SPA
+    API -->|Inferência RAG| Gemini
+    Auth -->|Confirmação| Resend
 ```
 
 ---
